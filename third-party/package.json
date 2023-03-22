@@ -1,0 +1,22 @@
+{
+    "name": "@realtime-communication/third-party",
+    "version": "0.1.0",
+    "main": "index.js",
+    "license": "MIT",
+    "private": true,
+    "scripts": {
+        "dev": "tsx watch --clear-screen=false src/server.ts"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.13",
+        "@types/express": "^4.17.17",
+        "@types/node": "^18.15.5",
+        "tsx": "^3.12.6",
+        "typescript": "^5.0.2"
+    },
+    "dependencies": {
+        "@faker-js/faker": "^7.6.0",
+        "cors": "^2.8.5",
+        "express": "^4.18.2"
+    }
+}

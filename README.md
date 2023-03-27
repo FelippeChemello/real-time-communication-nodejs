@@ -28,7 +28,7 @@ In a no-throttling scenario, the websocket solution is faster than the Server Se
     <summary>With Redis</summary>
 
 ### No Throttling
-
+https://user-images.githubusercontent.com/29099474/228018466-c15d6c9b-01d7-49c8-8145-c44457d9137f.mp4
 </details>
 
 <details>

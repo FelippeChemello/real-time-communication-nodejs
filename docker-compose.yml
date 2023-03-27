@@ -1,6 +1,15 @@
 version: '3'
 
 services:
+  redis:
+    image: bitnami/redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - default
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+
   backend:
     image: node:18
     working_dir: /app/backend
@@ -16,6 +25,8 @@ services:
       - "3000:3000"
     environment:
       - THIRD_PARTY_URL=http://third-party:3001
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
 
   frontend:
     image: node:18

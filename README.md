@@ -24,11 +24,26 @@ Both solutions are very similar in implementation and performance. However the S
 
 In a no-throttling scenario, the websocket solution is faster than the Server Sent Events solution, but in a throttling scenario, the Server Sent Events solution is faster than the websocket solution as shown in the following video:
 
+<details>
+    <summary>With Redis</summary>
+
+### No Throttling
+
+</details>
+
+<details>
+    <summary><a href="https://github.com/FelippeChemello/real-time-communication-nodejs/tree/92b8162259c902ff0dce791b081ce20f1e2ce325">Without Redis (Older version)</a></summary>
+
 ### No Throttling
 https://user-images.githubusercontent.com/29099474/227036516-ff3d8b9e-aa9c-4498-9df2-f7bd72c7bbd1.mp4
 
 ### Slow 3G
 https://user-images.githubusercontent.com/29099474/227036809-2c7fcedc-5b38-455b-a41d-a44e3b51f50c.mp4
+</details>
+
+
+
+
 
 This can be explained by the fact that Websocket protocol uses a constant connection, which may result in congestion in the network, while Server Sent Events uses a single request/response, which is more efficient in a throttling scenario.
 

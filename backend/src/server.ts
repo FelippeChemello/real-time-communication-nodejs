@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-// import Redis from 'ioredis';
+import Redis from 'ioredis';
 import expressWs from 'express-ws';
 
 const app = express();
@@ -9,13 +9,23 @@ expressWs(app);
 app.use(cors());
 app.use(express.json());
 
-const wsClientsConnected: Set<WebSocket> = new Set();
-const serverEventsClientsConnected: Response[] = [];
+const pubRedis = new Redis({
+    host: process.env.REDIS_HOST,
+    port: Number(process.env.REDIS_PORT),
+});
 
-// const redis = new Redis({
-//     host: process.env.REDIS_HOST,
-//     port: Number(process.env.REDIS_PORT),
-// });
+const subRedis = new Redis({
+    host: process.env.REDIS_HOST,
+    port: Number(process.env.REDIS_PORT),
+});
+
+subRedis.subscribe('my-data', (err, count) => {
+    if (err) {
+        console.error(err);
+    }
+
+    console.log(`Subscribed to ${count} channels`);
+});
 
 app.post('/start', async (req: Request, res: Response) => {
     const response = await fetch(`${process.env.THIRD_PARTY_URL}/start`, {
@@ -29,26 +39,10 @@ app.post('/hook', async (req: Request, res: Response) => {
     console.log('Received hook');
     const { timeSent, value }: { timeSent: number, value: number } = req.body;
 
-    // redis.publish('my-data', JSON.stringify({
-    //     timeSent,
-    //     value,
-    // }));
-
-    const message = JSON.stringify({
+    pubRedis.publish('my-data', JSON.stringify({
         timeSent,
         value,
-    });
-
-    console.log('serverEventsClientsConnected', serverEventsClientsConnected.length);
-    serverEventsClientsConnected.forEach((resClient) => {
-        resClient.write('event: message\n');
-        resClient.write(`data: ${message}\n\n`);
-    });
-
-    console.log('wsClientsConnected', wsClientsConnected.size);
-    wsClientsConnected.forEach((ws) => {
-        ws.send(message);
-    });
+    }));
 
     res.status(204).send();
 });
@@ -56,11 +50,15 @@ app.post('/hook', async (req: Request, res: Response) => {
 // @ts-expect-error express-ws types are wrong
 app.ws('/', (ws) => {
     console.log('Client WS connected');
-    wsClientsConnected.add(ws);
+
+    subRedis.on('message', (channel, message) => {
+        console.log(`Received message on WS from channel ${channel}`);
+
+        ws.send(message);
+    });
 
     ws.on('close', () => {
         console.log('Client WS disconnected');
-        wsClientsConnected.delete(ws);
     });
 });
 
@@ -71,11 +69,15 @@ app.get('/sse', (req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    serverEventsClientsConnected.push(res);
+    subRedis.on('message', (channel, message) => {
+        console.log(`Received message on SSE from channel ${channel}`);
+
+        res.write('event: message\n');
+        res.write(`data: ${message}\n\n`);
+    });
 
     req.on('close', () => {
         console.log('Client SSE disconnected');
-        serverEventsClientsConnected.splice(serverEventsClientsConnected.indexOf(res), 1);
     });
 });
 
